@@ -1,1 +1,607 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Maderoterapie Šárka Šopov | Masáže a péče o tělo</title>
+  <!-- Google Fonts + Font Awesome -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Leaflet map (bez přetékání) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fefaf5;
+      color: #2e241f;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    /* ----- MEGA INTRO ANIMACE (wood + relax) ----- */
+    .intro-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at 40% 30%, #d9c2a7, #8b5a2b);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1.5rem;
+      transition: opacity 1s cubic-bezier(0.2, 0.9, 0.4, 1.2), visibility 0s 1.2s;
+      backdrop-filter: blur(3px);
+    }
+
+    .intro-splash.hide {
+      opacity: 0;
+      visibility: hidden;
+    }
+
+    .maderotherapie-anim {
+      display: flex;
+      gap: 25px;
+      font-size: 5rem;
+      filter: drop-shadow(0 15px 20px rgba(0,0,0,0.2));
+      animation: woodSpin 1.6s infinite alternate ease-in-out;
+    }
+
+    @keyframes woodSpin {
+      0% { transform: translateY(0px) rotate(0deg);}
+      100% { transform: translateY(-25px) rotate(8deg);}
+    }
+
+    .splash-title {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #f9e2b7, #fff1d6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      animation: gentlePulse 1.4s infinite alternate;
+    }
+
+    @keyframes gentlePulse {
+      0% { text-shadow: 0 0 0px #ffd8a5; opacity: 0.9; }
+      100% { text-shadow: 0 0 18px #ffbe76; opacity: 1; }
+    }
+
+    .splash-sub {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #2c1a08;
+      background: rgba(255, 245, 225, 0.7);
+      padding: 8px 24px;
+      border-radius: 60px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* hlavní web */
+    .main-site {
+      opacity: 0;
+      transform: scale(0.98) translateY(25px);
+      transition: opacity 0.9s ease 0.2s, transform 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.2);
+    }
+
+    .main-site.visible {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+
+    /* navbar */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(250, 240, 225, 0.92);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid #e1cbb0;
+      padding: 1rem 0;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 28px;
+    }
+
+    .nav-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .logo {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #7b4a2a;
+    }
+
+    .logo i {
+      background: #f2e0ca;
+      padding: 8px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+
+    .lang-switch {
+      display: flex;
+      gap: 8px;
+      background: #fff3e8;
+      padding: 6px 16px;
+      border-radius: 60px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      padding: 5px 12px;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: 0.2s;
+      color: #5f3c1a;
+    }
+
+    .lang-btn.active {
+      background: #a5612c;
+      color: white;
+    }
+
+    /* hero sekce */
+    .hero {
+      background: linear-gradient(115deg, #fff2e4, #fee7d4);
+      padding: 80px 0;
+      position: relative;
+    }
+    .hero::after {
+      content: "🌿🍃";
+      font-size: 200px;
+      opacity: 0.06;
+      position: absolute;
+      bottom: 0;
+      right: 0px;
+      pointer-events: none;
+    }
+    .hero-grid {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 45px;
+    }
+    .hero-content {
+      flex: 1.2;
+    }
+    .hero-badge {
+      background: #dfcbb2;
+      display: inline-block;
+      padding: 6px 20px;
+      border-radius: 80px;
+      font-weight: 600;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 3.7rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .text-highlight {
+      color: #bd6b2f;
+    }
+    .cta-btn {
+      background: #aa6733;
+      padding: 14px 34px;
+      border-radius: 44px;
+      font-weight: 700;
+      display: inline-block;
+      margin-top: 28px;
+      transition: 0.2s;
+      box-shadow: 0 6px 14px rgba(160, 80, 30, 0.3);
+      text-decoration: none;
+      color: white;
+      border: none;
+    }
+    .cta-btn:hover {
+      background: #844a22;
+      transform: translateY(-3px);
+    }
+
+    /* sekce */
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #4a2c16;
+    }
+    .section-sub {
+      color: #b07b4b;
+      margin-bottom: 3rem;
+      font-weight: 500;
+    }
+    .grid-3, .services-grid, .assort-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+      gap: 32px;
+      margin: 40px 0 30px;
+    }
+    .card-natural {
+      background: #ffffffdd;
+      backdrop-filter: blur(2px);
+      border-radius: 36px;
+      padding: 32px 20px;
+      transition: all 0.25s;
+      border: 1px solid #f7e3cf;
+      box-shadow: 0 12px 22px rgba(0,0,0,0.02);
+    }
+    .card-natural:hover {
+      transform: translateY(-8px);
+      border-color: #cd9a68;
+      background: #fffbf5;
+      box-shadow: 0 20px 30px rgba(90, 55, 25, 0.08);
+    }
+    .card-natural i {
+      font-size: 2.7rem;
+      color: #bf783e;
+      margin-bottom: 18px;
+    }
+    .price {
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: #b65f24;
+      margin-top: 15px;
+      display: inline-block;
+    }
+
+    /* mapa */
+    .map-wrapper {
+      border-radius: 40px;
+      overflow: hidden;
+      box-shadow: 0 22px 32px rgba(0,0,0,0.08);
+      height: 380px;
+      border: 2px solid #efe0ce;
+    }
+    #maderMap {
+      height: 100%;
+      width: 100%;
+      z-index: 1;
+    }
+    .contact-footer {
+      display: flex;
+      flex-wrap: wrap;
+      background: #fff8ef;
+      border-radius: 60px;
+      margin-top: 30px;
+      padding: 20px 32px;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .contact-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 500;
+    }
+    .contact-item i {
+      font-size: 1.6rem;
+      color: #bd6e32;
+    }
+    footer {
+      text-align: center;
+      padding: 32px;
+      background: #eeddcb;
+      color: #5d3b1c;
+      font-weight: 500;
+    }
+    @media (max-width: 780px) {
+      h1 { font-size: 2.5rem; }
+      .section-title { font-size: 2rem; }
+      .contact-footer { flex-direction: column; align-items: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- MEGA INTRO ANIMACE -->
+<div class="intro-splash" id="introSplash">
+  <div class="maderotherapie-anim">
+    <i class="fas fa-hand-sparkles"></i>
+    <i class="fas fa-leaf"></i>
+    <i class="fas fa-spa"></i>
+  </div>
+  <div class="splash-title">Maderoterapie Šárka Šopov</div>
+  <div class="splash-sub">✨ přirozená krása • dřevěné masáže • relaxace</div>
+</div>
+
+<main class="main-site" id="mainSite">
+  <nav class="navbar">
+    <div class="container nav-flex">
+      <div class="logo"><i class="fas fa-tree"></i> Maderoterapie</div>
+      <div class="lang-switch" id="langSwitch">
+        <button class="lang-btn active" data-lang="cs">Čeština</button>
+        <button class="lang-btn" data-lang="en">English</button>
+        <button class="lang-btn" data-lang="de">Deutsch</button>
+        <button class="lang-btn" data-lang="ru">Русский</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO / INTRO -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <div class="hero-badge" data-translate="heroBadge">⭐️ hodnocení 5,0 • přírodní terapie</div>
+        <h1><span data-translate="heroTitle1">Maderoterapie</span><br><span class="text-highlight" data-translate="heroTitle2">pro vaše pohodlí a zdraví</span></h1>
+        <p data-translate="heroDesc" style="font-size:1.1rem; max-width:550px;">Speciální masáže dřevěnými nástroji, které tvarují postavu, uvolňují svaly a navozují harmonii. Vyzkoušejte účinky přírodní metody.</p>
+        <a href="#services" class="cta-btn" data-translate="heroBtn">Objevte procedury →</a>
+      </div>
+      <div style="flex:0.7; text-align:center;">
+        <i class="fas fa-spa" style="font-size: 6rem; opacity: 0.25; color:#bc6f3c;"></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- VÝHODY -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="advTitle">🌿 Proč právě maderoterapie</h2>
+      <div class="section-sub" data-translate="advSub">Přírodní cesta ke štíhlé linii a uvolnění</div>
+      <div class="grid-3">
+        <div class="card-natural"><i class="fas fa-hand-peace"></i><h3 data-translate="adv1Title">Účinná proti celulitidě</h3><p data-translate="adv1Desc">Stimulace lymfy a prokrvení, viditelné výsledky už po pár sezeních.</p></div>
+        <div class="card-natural"><i class="fas fa-clock"></i><h3 data-translate="adv2Title">Bezbolestná relaxace</h3><p data-translate="adv2Desc">Příjemná masáž dřevěnými válečky, která uvolní i hluboké svalové napětí.</p></div>
+        <div class="card-natural"><i class="fas fa-chart-line"></i><h3 data-translate="adv3Title">Tvarování postavy</h3><p data-translate="adv3Desc">Redukce obvodů, zpevnění pokožky a celkové zlepšení kontur.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SLUŽBY -->
+  <section id="services">
+    <div class="container">
+      <h2 class="section-title" data-translate="servicesTitle">🌸 Nabídka procedur</h2>
+      <div class="section-sub" data-translate="servicesSub">Profesionální přístup a individuální péče</div>
+      <div class="services-grid">
+        <div class="card-natural"><i class="fas fa-massage"></i><h3 data-translate="serv1">Kompletní maderoterapie těla</h3><p data-translate="serv1Desc">Masáž zad, nohou, břicha a paží dřevěnými nástroji – délka 60 min.</p><span class="price">1 200 Kč</span></div>
+        <div class="card-natural"><i class="fas fa-arrows-spin"></i><h3 data-translate="serv2">Lymfodrenážní masáž</h3><p data-translate="serv2Desc">Šetrná stimulace lymfatického systému, odvodnění a detoxikace.</p><span class="price">900 Kč</span></div>
+        <div class="card-natural"><i class="fas fa-couch"></i><h3 data-translate="serv3">Konturování břicha & stehen</h3><p data-translate="serv3Desc">Intenzivní práce na problémových partiích, tvarování postavy.</p><span class="price">1 000 Kč</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ASORTIMENT / DOPLŇKOVÉ SLUŽBY -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="assortTitle">🍯 Dopřejte si komplexní péči</h2>
+      <div class="section-sub" data-translate="assortSub">Zkuste naše balíčky a kombinace</div>
+      <div class="assort-grid">
+        <div class="card-natural"><i class="fas fa-seedling"></i><h3 data-translate="assort1">Základní kúra (3x)</h3><p data-translate="assort1Desc">3 sezení maderoterapie + lymfodrenáž – ideální start.</p><span class="price">2 700 Kč</span></div>
+        <div class="card-natural"><i class="fas fa-star-of-life"></i><h3 data-translate="assort2">VIP balíček (5x)</h3><p data-translate="assort2Desc">5 komplexních masáží + konzultace životosprávy.</p><span class="price">4 500 Kč</span></div>
+        <div class="card-natural"><i class="fas fa-hand-holding-heart"></i><h3 data-translate="assort3">Terapie s éterickými oleji</h3><p data-translate="assort3Desc">Aromaterapie + maderoterapie pro hluboké uvolnění.</p><span class="price">1 300 Kč</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAPA + KONTAKT (přesná data z odkazu) -->
+  <section>
+    <div class="container">
+      <h2 class="section-title" data-translate="mapTitle">📍 Najdete nás v Tašovicích</h2>
+      <div class="section-sub" data-translate="mapSub">Česká 156, Karlovy Vary – klidná lokalita s parkováním</div>
+      <div class="map-wrapper">
+        <div id="maderMap"></div>
+      </div>
+      <div class="contact-footer">
+        <div class="contact-item"><i class="fas fa-map-marker-alt"></i> <span data-translate="address">Česká 156, Tašovice, 360 18 Karlovy Vary 18</span></div>
+        <div class="contact-item"><i class="fas fa-phone-alt"></i> <a href="tel:+420608369387" style="color:#ac622f; text-decoration:none;">+420 608 369 387</a></div>
+        <div class="contact-item"><i class="fas fa-clock"></i> <span data-translate="hours">Po–Pá: 9:00–19:00 | So: dle objednání</span></div>
+        <div class="contact-item"><i class="fab fa-facebook"></i> @maderoterapiesarka</div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>🌲 Maderoterapie Šárka Šopov – profesionální péče o vaše tělo | <span data-translate="footerRights">Objednávejte s důvěrou</span></p>
+  </footer>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // ---------- VÍCEJAZYČNÁ DATA (dle mapy a realných údajů) ----------
+  const translations = {
+    cs: {
+      heroBadge: "⭐️ hodnocení 5,0 • přírodní terapie",
+      heroTitle1: "Maderoterapie",
+      heroTitle2: "pro vaše pohodlí a zdraví",
+      heroDesc: "Speciální masáže dřevěnými nástroji, které tvarují postavu, uvolňují svaly a navozují harmonii. Vyzkoušejte účinky přírodní metody.",
+      heroBtn: "Objevte procedury →",
+      advTitle: "🌿 Proč právě maderoterapie",
+      advSub: "Přírodní cesta ke štíhlé linii a uvolnění",
+      adv1Title: "Účinná proti celulitidě",
+      adv1Desc: "Stimulace lymfy a prokrvení, viditelné výsledky už po pár sezeních.",
+      adv2Title: "Bezbolestná relaxace",
+      adv2Desc: "Příjemná masáž dřevěnými válečky, která uvolní i hluboké svalové napětí.",
+      adv3Title: "Tvarování postavy",
+      adv3Desc: "Redukce obvodů, zpevnění pokožky a celkové zlepšení kontur.",
+      servicesTitle: "🌸 Nabídka procedur",
+      servicesSub: "Profesionální přístup a individuální péče",
+      serv1: "Kompletní maderoterapie těla",
+      serv1Desc: "Masáž zad, nohou, břicha a paží dřevěnými nástroji – délka 60 min.",
+      serv2: "Lymfodrenážní masáž",
+      serv2Desc: "Šetrná stimulace lymfatického systému, odvodnění a detoxikace.",
+      serv3: "Konturování břicha & stehen",
+      serv3Desc: "Intenzivní práce na problémových partiích, tvarování postavy.",
+      assortTitle: "🍯 Dopřejte si komplexní péči",
+      assortSub: "Zkuste naše balíčky a kombinace",
+      assort1: "Základní kúra (3x)",
+      assort1Desc: "3 sezení maderoterapie + lymfodrenáž – ideální start.",
+      assort2: "VIP balíček (5x)",
+      assort2Desc: "5 komplexních masáží + konzultace životosprávy.",
+      assort3: "Terapie s éterickými oleji",
+      assort3Desc: "Aromaterapie + maderoterapie pro hluboké uvolnění.",
+      mapTitle: "📍 Najdete nás v Tašovicích",
+      mapSub: "Česká 156, Karlovy Vary – klidná lokalita s parkováním",
+      address: "Česká 156, Tašovice, 360 18 Karlovy Vary 18",
+      hours: "Po–Pá: 9:00–19:00 | So: dle objednání",
+      footerRights: "Objednávejte s důvěrou"
+    },
+    en: {
+      heroBadge: "⭐️ 5.0 rating • natural therapy",
+      heroTitle1: "Maderotherapy",
+      heroTitle2: "for your wellness & health",
+      heroDesc: "Special wooden tool massages that shape the body, release muscles and bring harmony. Try the benefits of this natural method.",
+      heroBtn: "Discover treatments →",
+      advTitle: "🌿 Why maderotherapy",
+      advSub: "Natural path to a slim figure and relaxation",
+      adv1Title: "Effective against cellulite",
+      adv1Desc: "Stimulates lymph flow and circulation – visible results after few sessions.",
+      adv2Title: "Painless relaxation",
+      adv2Desc: "Pleasant massage with wooden rollers releases deep muscle tension.",
+      adv3Title: "Body contouring",
+      adv3Desc: "Reduces circumferences, tightens skin and improves body shape.",
+      servicesTitle: "🌸 Treatment offers",
+      servicesSub: "Professional approach and individual care",
+      serv1: "Full body maderotherapy",
+      serv1Desc: "Back, legs, belly and arms massage with wooden tools – 60 min.",
+      serv2: "Lymphatic drainage massage",
+      serv2Desc: "Gentle stimulation of the lymphatic system, detox and debloating.",
+      serv3: "Belly & thighs contouring",
+      serv3Desc: "Intensive work on problem areas, body shaping.",
+      assortTitle: "🍯 Treat yourself to complex care",
+      assortSub: "Try our packages",
+      assort1: "Basic cure (3x)",
+      assort1Desc: "3 sessions of maderotherapy + lymphatic drainage – ideal start.",
+      assort2: "VIP package (5x)",
+      assort2Desc: "5 comprehensive massages + lifestyle consultation.",
+      assort3: "Essential oils therapy",
+      assort3Desc: "Aromatherapy + maderotherapy for deep relaxation.",
+      mapTitle: "📍 Find us in Tašovice",
+      mapSub: "Česká 156, Karlovy Vary – quiet area with parking",
+      address: "Česká 156, Tašovice, 360 18 Karlovy Vary 18",
+      hours: "Mon–Fri: 9:00–19:00 | Sat: by appointment",
+      footerRights: "Book with confidence"
+    },
+    de: {
+      heroBadge: "⭐️ 5,0 Bewertung • natürliche Therapie",
+      heroTitle1: "Maderotherapie",
+      heroTitle2: "für Ihr Wohlbefinden",
+      heroDesc: "Spezielle Massagen mit Holzwerkzeugen, die die Figur formen, Muskeln lösen und Harmonie schaffen.",
+      heroBtn: "Behandlungen entdecken →",
+      advTitle: "🌿 Warum Maderotherapie",
+      advSub: "Natürlicher Weg zu einer schlanken Linie",
+      adv1Title: "Wirksam gegen Cellulite",
+      adv1Desc: "Fördert Lymphfluss und Durchblutung – sichtbare Ergebnisse.",
+      adv2Title: "Schmerzfreie Entspannung",
+      adv2Desc: "Angenehme Massage mit Holzrollern löst tiefe Verspannungen.",
+      adv3Title: "Körperkonturierung",
+      adv3Desc: "Reduziert Umfänge, strafft die Haut und verbessert Konturen.",
+      servicesTitle: "🌸 Behandlungen",
+      servicesSub: "Professioneller Ansatz & individuelle Betreuung",
+      serv1: "Ganzkörper-Maderotherapie",
+      serv1Desc: "Massage an Rücken, Beinen, Bauch und Armen mit Holzwerkzeugen – 60 Min.",
+      serv2: "Lymphdrainage-Massage",
+      serv2Desc: "Sanfte Stimulation des Lymphsystems, Entwässerung und Detox.",
+      serv3: "Bauch- & Oberschenkelkonturierung",
+      serv3Desc: "Intensive Arbeit an Problemzonen.",
+      assortTitle: "🍯 Komplexpflege",
+      assortSub: "Probieren Sie unsere Pakete",
+      assort1: "Basis-Kur (3x)",
+      assort1Desc: "3 Sitzungen Maderotherapie + Lymphdrainage.",
+      assort2: "VIP-Paket (5x)",
+      assort2Desc: "5 umfassende Massagen + Ernährungsberatung.",
+      assort3: "Therapie mit ätherischen Ölen",
+      assort3Desc: "Aromatherapie + Maderotherapie.",
+      mapTitle: "📍 In Tašovice finden Sie uns",
+      mapSub: "Česká 156, Karlovy Vary – ruhige Lage",
+      address: "Česká 156, Tašovice, 360 18 Karlovy Vary 18",
+      hours: "Mo–Fr: 9:00–19:00 | Sa: nach Vereinbarung",
+      footerRights: "Buchen Sie vertrauensvoll"
+    },
+    ru: {
+      heroBadge: "⭐️ рейтинг 5,0 • натуральная терапия",
+      heroTitle1: "Мадеротерапия",
+      heroTitle2: "для вашего комфорта и здоровья",
+      heroDesc: "Специальный массаж деревянными инструментами, который моделирует фигуру, расслабляет мышцы и дарит гармонию.",
+      heroBtn: "Узнать о процедурах →",
+      advTitle: "🌿 Почему мадеротерапия",
+      advSub: "Природный путь к стройности и расслаблению",
+      adv1Title: "Эффективно против целлюлита",
+      adv1Desc: "Стимуляция лимфотока и кровообращения – видимые результаты после нескольких сеансов.",
+      adv2Title: "Безболезненная релаксация",
+      adv2Desc: "Приятный массаж деревянными валиками снимает глубокое мышечное напряжение.",
+      adv3Title: "Моделирование тела",
+      adv3Desc: "Уменьшение объемов, подтяжка кожи и улучшение контуров.",
+      servicesTitle: "🌸 Наши процедуры",
+      servicesSub: "Профессиональный подход и индивидуальный уход",
+      serv1: "Полная мадеротерапия тела",
+      serv1Desc: "Массаж спины, ног, живота и рук деревянными инструментами – 60 мин.",
+      serv2: "Лимфодренажный массаж",
+      serv2Desc: "Мягкая стимуляция лимфатической системы, вывод жидкости и детокс.",
+      serv3: "Коррекция живота и бёдер",
+      serv3Desc: "Интенсивная проработка проблемных зон, моделирование фигуры.",
+      assortTitle: "🍯 Комплексный уход",
+      assortSub: "Попробуйте наши пакеты",
+      assort1: "Базовый курс (3x)",
+      assort1Desc: "3 сеанса мадеротерапии + лимфодренаж – идеальный старт.",
+      assort2: "VIP-пакет (5x)",
+      assort2Desc: "5 комплексных массажей + консультация по питанию.",
+      assort3: "Терапия с эфирными маслами",
+      assort3Desc: "Ароматерапия + мадеротерапия для глубокого расслабления.",
+      mapTitle: "📍 Мы в Ташовице",
+      mapSub: "Česká 156, Карловы Вары – тихий район с парковкой",
+      address: "Česká 156, Tašovice, 360 18 Karlovy Vary 18",
+      hours: "Пн–Пт: 9:00–19:00 | Сб: по записи",
+      footerRights: "Записывайтесь с уверенностью"
+    }
+  };
+
+  let activeLang = 'cs';
+  function applyLanguage(lang) {
+    if (!translations[lang]) return;
+    const dict = translations[lang];
+    document.querySelectorAll('[data-translate]').forEach(el => {
+      const key = el.getAttribute('data-translate');
+      if (dict[key]) el.innerText = dict[key];
+    });
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      if (btn.dataset.lang === lang) btn.classList.add('active');
+      else btn.classList.remove('active');
+    });
+    activeLang = lang;
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => applyLanguage(btn.dataset.lang));
+  });
+
+  // Intro zmizí + mapa (přesné souřadnice Česká 156, Tašovice, Karlovy Vary)
+  window.addEventListener('load', () => {
+    const introDiv = document.getElementById('introSplash');
+    const mainDiv = document.getElementById('mainSite');
+    setTimeout(() => {
+      introDiv.classList.add('hide');
+      mainDiv.classList.add('visible');
+    }, 1600);
+
+    // Souřadnice lokality (Česká 156, Tašovice, Karlovy Vary)
+    const map = L.map('maderMap').setView([50.2303, 12.8536], 16);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB'
+    }).addTo(map);
+    const marker = L.marker([50.23045, 12.8537]).addTo(map);
+    marker.bindPopup('<b>🌿 Maderoterapie Šárka Šopov</b><br>Česká 156, Tašovice<br>📞 +420 608 369 387').openPopup();
+    setTimeout(() => map.invalidateSize(), 200);
+    window.addEventListener('resize', () => map.invalidateSize());
+  });
+</script>
+</body>
+</html>
